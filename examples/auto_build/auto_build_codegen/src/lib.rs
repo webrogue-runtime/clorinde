@@ -28,4 +28,4 @@ pub use tokio_postgres;
 #[cfg(any(feature = "deadpool", feature = "wasm-async"))]
 pub use tokio_postgres::fallible_iterator;
 pub use type_traits::{ArraySql, BytesSql, IterSql, StringSql};
-pub(crate) use utils::slice_iter;
+pub(crate) use utils::{slice_iter, slice_iter_typed};

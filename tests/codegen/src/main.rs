@@ -109,6 +109,18 @@ pub fn test_params(client: &mut Client) {
         ]
     );
     params_use_twice().bind(client, &"name").unwrap();
+
+    // The same query should return the same rows whether it is executed
+    // through a prepared statement or through the typed, unprepared path.
+    let titles = ["In Search of Lost Time"];
+    let unprepared = find_books().bind(client, &titles.as_slice()).all().unwrap();
+    let prepared = find_books()
+        .prepare(client)
+        .unwrap()
+        .bind(client, &titles.as_slice())
+        .all()
+        .unwrap();
+    assert_eq!(prepared, unprepared);
 }
 
 pub fn test_trait_sql(client: &mut Client) {

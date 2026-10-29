@@ -86,6 +86,7 @@ pub mod sync {
     pub struct SelectNightmareDomainQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor:
@@ -103,6 +104,7 @@ pub mod sync {
             SelectNightmareDomainQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -110,15 +112,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -133,7 +146,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -148,6 +162,7 @@ pub mod sync {
     pub struct SelectNightmareDomainNullQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor:
@@ -165,6 +180,7 @@ pub mod sync {
             SelectNightmareDomainNullQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -172,15 +188,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -195,7 +222,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -226,6 +254,7 @@ pub mod sync {
             SelectNightmareDomainQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -275,14 +304,135 @@ pub mod sync {
             arr: &'a T4,
             composite: &'a Option<crate::types::DomainCompositeParams<'a>>,
         ) -> Result<u64, postgres::Error> {
-            client.execute(
+            client.execute_typed(
                 self.0,
                 &[
-                    &crate::Domain(txt),
-                    &crate::Domain(json),
-                    &crate::Domain(nb),
-                    &crate::Domain(&crate::DomainArray(arr)),
-                    composite,
+                    (
+                        &crate::Domain(txt),
+                        postgres_types::Type::new(
+                            "domain_txt".to_owned(),
+                            17203u32,
+                            postgres_types::Kind::Domain(
+                                postgres_types::Type::from_oid(25u32)
+                                    .expect("known built-in postgres type"),
+                            ),
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        &crate::Domain(json),
+                        postgres_types::Type::new(
+                            "domain_json".to_owned(),
+                            17205u32,
+                            postgres_types::Kind::Domain(
+                                postgres_types::Type::from_oid(114u32)
+                                    .expect("known built-in postgres type"),
+                            ),
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        &crate::Domain(nb),
+                        postgres_types::Type::new(
+                            "domain_nb".to_owned(),
+                            17207u32,
+                            postgres_types::Kind::Domain(
+                                postgres_types::Type::from_oid(23u32)
+                                    .expect("known built-in postgres type"),
+                            ),
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        &crate::Domain(&crate::DomainArray(arr)),
+                        postgres_types::Type::new(
+                            "domain_array".to_owned(),
+                            17209u32,
+                            postgres_types::Kind::Domain(postgres_types::Type::new(
+                                "_domain_json".to_owned(),
+                                17204u32,
+                                postgres_types::Kind::Array(postgres_types::Type::new(
+                                    "domain_json".to_owned(),
+                                    17205u32,
+                                    postgres_types::Kind::Domain(
+                                        postgres_types::Type::from_oid(114u32)
+                                            .expect("known built-in postgres type"),
+                                    ),
+                                    "public".to_owned(),
+                                )),
+                                "public".to_owned(),
+                            )),
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        composite,
+                        postgres_types::Type::new(
+                            "domain_composite".to_owned(),
+                            17212u32,
+                            postgres_types::Kind::Composite(vec![
+                                postgres_types::Field::new(
+                                    "txt".to_owned(),
+                                    postgres_types::Type::new(
+                                        "domain_txt".to_owned(),
+                                        17203u32,
+                                        postgres_types::Kind::Domain(
+                                            postgres_types::Type::from_oid(25u32)
+                                                .expect("known built-in postgres type"),
+                                        ),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "json".to_owned(),
+                                    postgres_types::Type::new(
+                                        "domain_json".to_owned(),
+                                        17205u32,
+                                        postgres_types::Kind::Domain(
+                                            postgres_types::Type::from_oid(114u32)
+                                                .expect("known built-in postgres type"),
+                                        ),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "nb".to_owned(),
+                                    postgres_types::Type::new(
+                                        "domain_nb".to_owned(),
+                                        17207u32,
+                                        postgres_types::Kind::Domain(
+                                            postgres_types::Type::from_oid(23u32)
+                                                .expect("known built-in postgres type"),
+                                        ),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "arr".to_owned(),
+                                    postgres_types::Type::new(
+                                        "domain_array".to_owned(),
+                                        17209u32,
+                                        postgres_types::Kind::Domain(postgres_types::Type::new(
+                                            "_domain_json".to_owned(),
+                                            17204u32,
+                                            postgres_types::Kind::Array(postgres_types::Type::new(
+                                                "domain_json".to_owned(),
+                                                17205u32,
+                                                postgres_types::Kind::Domain(
+                                                    postgres_types::Type::from_oid(114u32)
+                                                        .expect("known built-in postgres type"),
+                                                ),
+                                                "public".to_owned(),
+                                            )),
+                                            "public".to_owned(),
+                                        )),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                            ]),
+                            "public".to_owned(),
+                        ),
+                    ),
                 ],
             )
         }
@@ -341,6 +491,7 @@ pub mod sync {
             SelectNightmareDomainNullQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &postgres::Row| -> Result<
@@ -366,6 +517,7 @@ pub mod async_ {
     pub struct SelectNightmareDomainQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(
@@ -385,6 +537,7 @@ pub mod async_ {
             SelectNightmareDomainQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -392,18 +545,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -420,7 +583,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -438,6 +602,7 @@ pub mod async_ {
     pub struct SelectNightmareDomainNullQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(
@@ -457,6 +622,7 @@ pub mod async_ {
             SelectNightmareDomainNullQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -464,18 +630,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -492,7 +668,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -526,6 +703,7 @@ pub mod async_ {
             SelectNightmareDomainQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &tokio_postgres::Row| -> Result<
@@ -577,14 +755,143 @@ pub mod async_ {
             composite: &'a Option<crate::types::DomainCompositeParams<'a>>,
         ) -> Result<u64, tokio_postgres::Error> {
             client
-                .execute(
+                .execute_typed(
                     self.0,
                     &[
-                        &crate::Domain(txt),
-                        &crate::Domain(json),
-                        &crate::Domain(nb),
-                        &crate::Domain(&crate::DomainArray(arr)),
-                        composite,
+                        (
+                            &crate::Domain(txt),
+                            postgres_types::Type::new(
+                                "domain_txt".to_owned(),
+                                17203u32,
+                                postgres_types::Kind::Domain(
+                                    postgres_types::Type::from_oid(25u32)
+                                        .expect("known built-in postgres type"),
+                                ),
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            &crate::Domain(json),
+                            postgres_types::Type::new(
+                                "domain_json".to_owned(),
+                                17205u32,
+                                postgres_types::Kind::Domain(
+                                    postgres_types::Type::from_oid(114u32)
+                                        .expect("known built-in postgres type"),
+                                ),
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            &crate::Domain(nb),
+                            postgres_types::Type::new(
+                                "domain_nb".to_owned(),
+                                17207u32,
+                                postgres_types::Kind::Domain(
+                                    postgres_types::Type::from_oid(23u32)
+                                        .expect("known built-in postgres type"),
+                                ),
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            &crate::Domain(&crate::DomainArray(arr)),
+                            postgres_types::Type::new(
+                                "domain_array".to_owned(),
+                                17209u32,
+                                postgres_types::Kind::Domain(postgres_types::Type::new(
+                                    "_domain_json".to_owned(),
+                                    17204u32,
+                                    postgres_types::Kind::Array(postgres_types::Type::new(
+                                        "domain_json".to_owned(),
+                                        17205u32,
+                                        postgres_types::Kind::Domain(
+                                            postgres_types::Type::from_oid(114u32)
+                                                .expect("known built-in postgres type"),
+                                        ),
+                                        "public".to_owned(),
+                                    )),
+                                    "public".to_owned(),
+                                )),
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            composite,
+                            postgres_types::Type::new(
+                                "domain_composite".to_owned(),
+                                17212u32,
+                                postgres_types::Kind::Composite(vec![
+                                    postgres_types::Field::new(
+                                        "txt".to_owned(),
+                                        postgres_types::Type::new(
+                                            "domain_txt".to_owned(),
+                                            17203u32,
+                                            postgres_types::Kind::Domain(
+                                                postgres_types::Type::from_oid(25u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            "public".to_owned(),
+                                        ),
+                                    ),
+                                    postgres_types::Field::new(
+                                        "json".to_owned(),
+                                        postgres_types::Type::new(
+                                            "domain_json".to_owned(),
+                                            17205u32,
+                                            postgres_types::Kind::Domain(
+                                                postgres_types::Type::from_oid(114u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            "public".to_owned(),
+                                        ),
+                                    ),
+                                    postgres_types::Field::new(
+                                        "nb".to_owned(),
+                                        postgres_types::Type::new(
+                                            "domain_nb".to_owned(),
+                                            17207u32,
+                                            postgres_types::Kind::Domain(
+                                                postgres_types::Type::from_oid(23u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            "public".to_owned(),
+                                        ),
+                                    ),
+                                    postgres_types::Field::new(
+                                        "arr".to_owned(),
+                                        postgres_types::Type::new(
+                                            "domain_array".to_owned(),
+                                            17209u32,
+                                            postgres_types::Kind::Domain(
+                                                postgres_types::Type::new(
+                                                    "_domain_json".to_owned(),
+                                                    17204u32,
+                                                    postgres_types::Kind::Array(
+                                                        postgres_types::Type::new(
+                                                            "domain_json".to_owned(),
+                                                            17205u32,
+                                                            postgres_types::Kind::Domain(
+                                                                postgres_types::Type::from_oid(
+                                                                    114u32,
+                                                                )
+                                                                .expect(
+                                                                    "known built-in postgres type",
+                                                                ),
+                                                            ),
+                                                            "public".to_owned(),
+                                                        ),
+                                                    ),
+                                                    "public".to_owned(),
+                                                ),
+                                            ),
+                                            "public".to_owned(),
+                                        ),
+                                    ),
+                                ]),
+                                "public".to_owned(),
+                            ),
+                        ),
                     ],
                 )
                 .await
@@ -646,6 +953,7 @@ pub mod async_ {
             SelectNightmareDomainNullQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &tokio_postgres::Row| -> Result<

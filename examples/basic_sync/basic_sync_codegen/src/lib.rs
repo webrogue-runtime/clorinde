@@ -20,4 +20,4 @@ pub use domain::{Domain, DomainArray};
 pub use postgres;
 pub use postgres::fallible_iterator;
 pub use type_traits::{ArraySql, BytesSql, IterSql, StringSql};
-pub(crate) use utils::slice_iter;
+pub(crate) use utils::{slice_iter, slice_iter_typed};

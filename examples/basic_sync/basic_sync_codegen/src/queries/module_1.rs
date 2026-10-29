@@ -19,6 +19,12 @@ impl InsertBookStmt {
         client: &'c mut C,
         title: &'a T1,
     ) -> Result<u64, postgres::Error> {
-        client.execute(self.0, &[title])
+        client.execute_typed(
+            self.0,
+            &[(
+                title,
+                postgres_types::Type::from_oid(1043u32).expect("known built-in postgres type"),
+            )],
+        )
     }
 }

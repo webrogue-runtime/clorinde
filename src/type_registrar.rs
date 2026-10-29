@@ -25,6 +25,7 @@ pub(crate) enum CornucopiaType {
         is_copy: bool,
     },
     Array {
+        pg_ty: Type,
         inner: Rc<CornucopiaType>,
     },
     Domain {
@@ -67,7 +68,7 @@ impl CornucopiaType {
                 ..
             } => true,
             CornucopiaType::Simple { .. } => !self.is_copy(),
-            CornucopiaType::Domain { inner, .. } | CornucopiaType::Array { inner } => {
+            CornucopiaType::Domain { inner, .. } | CornucopiaType::Array { inner, .. } => {
                 inner.is_ref()
             }
             _ => !self.is_copy(),
@@ -101,7 +102,7 @@ impl CornucopiaType {
             CornucopiaType::Domain { inner, .. } => {
                 format!("&crate::Domain({})", inner.sql_wrapped(name))
             }
-            CornucopiaType::Array { inner } => match inner.as_ref() {
+            CornucopiaType::Array { inner, .. } => match inner.as_ref() {
                 CornucopiaType::Domain { inner, .. } => {
                     format!("&crate::DomainArray({})", inner.sql_wrapped(name))
                 }
@@ -117,7 +118,7 @@ impl CornucopiaType {
             CornucopiaType::Domain { inner, .. } => {
                 format!("crate::Domain::<{}>", inner.accept_to_sql(ctx))
             }
-            CornucopiaType::Array { inner } => match inner.as_ref() {
+            CornucopiaType::Array { inner, .. } => match inner.as_ref() {
                 CornucopiaType::Domain { inner, .. } => {
                     let ty = inner.accept_to_sql(ctx);
                     format!("crate::DomainArray::<{ty}, &[{ty}]>")
@@ -133,8 +134,8 @@ impl CornucopiaType {
         match self {
             CornucopiaType::Simple { pg_ty, .. }
             | CornucopiaType::Custom { pg_ty, .. }
-            | CornucopiaType::Domain { pg_ty, .. } => pg_ty,
-            CornucopiaType::Array { inner } => inner.pg_ty(),
+            | CornucopiaType::Domain { pg_ty, .. }
+            | CornucopiaType::Array { pg_ty, .. } => pg_ty,
         }
     }
 
@@ -411,6 +412,7 @@ impl TypeRegistrar {
                     .register(name, inner_ty, query_name, module_info)?
                     .clone();
                 self.insert(ty, || CornucopiaType::Array {
+                    pg_ty: ty.clone(),
                     inner: inner.clone(),
                 })
             }

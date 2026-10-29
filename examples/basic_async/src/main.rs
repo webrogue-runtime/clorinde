@@ -20,8 +20,12 @@ pub async fn main() {
     let mut client = pool.get().await.unwrap();
 
     // The `all` method returns queried rows collected into a `Vec`
-    let authors = authors().bind(&client).all().await.unwrap();
-    dbg!(authors);
+    let all_authors = authors().bind(&client).all().await.unwrap();
+    dbg!(all_authors);
+
+    // The stream returned by `iter` is `Send`, so it can be moved into
+    // spawned tasks.
+    assert_send(authors().bind(&client).iter().await.unwrap());
 
     // Queries also accept transactions. Let's see how that works.
     {
@@ -104,6 +108,8 @@ pub async fn main() {
         .unwrap();
     dbg!(translations);
 }
+
+fn assert_send<T: Send>(_: T) {}
 
 /// Connection pool configuration.
 ///

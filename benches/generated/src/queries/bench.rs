@@ -134,6 +134,7 @@ pub mod sync {
     pub struct UserQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::UserBorrowed, postgres::Error>,
@@ -150,6 +151,7 @@ pub mod sync {
             UserQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -157,15 +159,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -180,7 +193,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -195,6 +209,7 @@ pub mod sync {
     pub struct PostQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::PostBorrowed, postgres::Error>,
@@ -211,6 +226,7 @@ pub mod sync {
             PostQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -218,15 +234,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -241,7 +268,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -256,6 +284,7 @@ pub mod sync {
     pub struct CommentQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::CommentBorrowed, postgres::Error>,
@@ -272,6 +301,7 @@ pub mod sync {
             CommentQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -279,15 +309,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -302,7 +343,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -317,6 +359,7 @@ pub mod sync {
     pub struct SelectComplexQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::SelectComplexBorrowed, postgres::Error>,
@@ -333,6 +376,7 @@ pub mod sync {
             SelectComplexQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -340,15 +384,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -363,7 +418,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -394,6 +450,7 @@ pub mod sync {
             UserQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &postgres::Row| -> Result<super::UserBorrowed, postgres::Error> {
@@ -441,7 +498,21 @@ pub mod sync {
             names: &'a T2,
             hair_colors: &'a T4,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[names, hair_colors])
+            client.execute_typed(
+                self.0,
+                &[
+                    (
+                        names,
+                        postgres_types::Type::from_oid(1009u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        hair_colors,
+                        postgres_types::Type::from_oid(1009u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                ],
+            )
         }
     }
     impl<
@@ -490,6 +561,7 @@ pub mod sync {
             PostQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &postgres::Row| -> Result<super::PostBorrowed, postgres::Error> {
@@ -524,6 +596,10 @@ pub mod sync {
             PostQuery {
                 client,
                 params: [ids],
+                typed_params: [(
+                    ids,
+                    postgres_types::Type::from_oid(1007u32).expect("known built-in postgres type"),
+                )],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &postgres::Row| -> Result<super::PostBorrowed, postgres::Error> {
@@ -557,6 +633,7 @@ pub mod sync {
             CommentQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor:
@@ -591,6 +668,10 @@ pub mod sync {
             CommentQuery {
                 client,
                 params: [ids],
+                typed_params: [(
+                    ids,
+                    postgres_types::Type::from_oid(1007u32).expect("known built-in postgres type"),
+                )],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor:
@@ -627,6 +708,7 @@ pub mod sync {
             SelectComplexQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor:
@@ -652,6 +734,7 @@ pub mod async_ {
     pub struct UserQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(&tokio_postgres::Row) -> Result<super::UserBorrowed, tokio_postgres::Error>,
@@ -668,6 +751,7 @@ pub mod async_ {
             UserQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -675,18 +759,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -703,7 +797,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -721,6 +816,7 @@ pub mod async_ {
     pub struct PostQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(&tokio_postgres::Row) -> Result<super::PostBorrowed, tokio_postgres::Error>,
@@ -737,6 +833,7 @@ pub mod async_ {
             PostQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -744,18 +841,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -772,7 +879,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -790,6 +898,7 @@ pub mod async_ {
     pub struct CommentQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor:
@@ -807,6 +916,7 @@ pub mod async_ {
             CommentQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -814,18 +924,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -842,7 +962,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -860,6 +981,7 @@ pub mod async_ {
     pub struct SelectComplexQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor:
@@ -877,6 +999,7 @@ pub mod async_ {
             SelectComplexQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -884,18 +1007,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -912,7 +1045,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -946,6 +1080,7 @@ pub mod async_ {
             UserQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -995,7 +1130,23 @@ pub mod async_ {
             names: &'a T2,
             hair_colors: &'a T4,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[names, hair_colors]).await
+            client
+                .execute_typed(
+                    self.0,
+                    &[
+                        (
+                            names,
+                            postgres_types::Type::from_oid(1009u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            hair_colors,
+                            postgres_types::Type::from_oid(1009u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                    ],
+                )
+                .await
         }
     }
     impl<
@@ -1046,6 +1197,7 @@ pub mod async_ {
             PostQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -1082,6 +1234,13 @@ pub mod async_ {
             PostQuery {
                 client,
                 params: [ids],
+                typed_params: [
+                    (
+                        ids,
+                        postgres_types::Type::from_oid(1007u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                ],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -1117,6 +1276,7 @@ pub mod async_ {
             CommentQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -1152,6 +1312,13 @@ pub mod async_ {
             CommentQuery {
                 client,
                 params: [ids],
+                typed_params: [
+                    (
+                        ids,
+                        postgres_types::Type::from_oid(1007u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                ],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -1189,6 +1356,7 @@ pub mod async_ {
             SelectComplexQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |

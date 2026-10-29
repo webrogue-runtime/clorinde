@@ -1,3 +1,4 @@
+use postgres_types::{Kind, Type};
 use quote::{format_ident, quote};
 
 use super::{GenCtx, idx_char, vfs::Vfs};
@@ -6,6 +7,74 @@ use crate::{
     config::Config,
     prepare_queries::{Preparation, PreparedItem, PreparedModule, PreparedQuery},
 };
+
+/// Generates an expression that evaluates to the `postgres_types::Type`
+/// corresponding to `ty`.
+///
+/// Built-in types are looked up by OID so that they compare equal to the
+/// constants used by `postgres_types`. Custom types are rebuilt recursively
+/// because `ToSql` implementations inspect the type's `Kind` and fields.
+fn type_expr(ty: &Type) -> proc_macro2::TokenStream {
+    if Type::from_oid(ty.oid()).as_ref() == Some(ty) {
+        let oid = ty.oid();
+        return quote! {
+            postgres_types::Type::from_oid(#oid).expect("known built-in postgres type")
+        };
+    }
+
+    let name = ty.name();
+    let oid = ty.oid();
+    let schema = ty.schema();
+    let kind = kind_expr(ty);
+
+    quote! {
+        postgres_types::Type::new(
+            #name.to_owned(),
+            #oid,
+            #kind,
+            #schema.to_owned(),
+        )
+    }
+}
+
+fn kind_expr(ty: &Type) -> proc_macro2::TokenStream {
+    match ty.kind() {
+        Kind::Simple => quote!(postgres_types::Kind::Simple),
+        Kind::Pseudo => quote!(postgres_types::Kind::Pseudo),
+        Kind::Enum(variants) => {
+            let variants = variants.iter().map(|variant| quote!(#variant.to_owned()));
+            quote!(postgres_types::Kind::Enum(vec![#(#variants),*]))
+        }
+        Kind::Composite(fields) => {
+            let fields = fields.iter().map(|field| {
+                let name = field.name();
+                let ty = type_expr(field.type_());
+                quote!(postgres_types::Field::new(#name.to_owned(), #ty))
+            });
+            quote!(postgres_types::Kind::Composite(vec![#(#fields),*]))
+        }
+        Kind::Array(inner) => {
+            let inner = type_expr(inner);
+            quote!(postgres_types::Kind::Array(#inner))
+        }
+        Kind::Range(inner) => {
+            let inner = type_expr(inner);
+            quote!(postgres_types::Kind::Range(#inner))
+        }
+        Kind::Multirange(inner) => {
+            let inner = type_expr(inner);
+            quote!(postgres_types::Kind::Multirange(#inner))
+        }
+        Kind::Domain(inner) => {
+            let inner = type_expr(inner);
+            quote!(postgres_types::Kind::Domain(#inner))
+        }
+        // Unsupported kinds are rejected while preparing queries, so this is
+        // only reachable if `postgres-types` adds a new kind that the
+        // registrar does not know about yet.
+        _ => unreachable!("unsupported postgres type kind reached codegen: {ty}"),
+    }
+}
 
 fn gen_params_struct(params: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
     let PreparedItem {
@@ -312,7 +381,7 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
             pub #fn_async fn iter(
                 self,
             ) -> Result<impl #raw_type<Item = Result<T, #backend::Error>> + 'c, #backend::Error> {
-                let stream = #client::raw(self.client, self.query, crate::slice_iter(&self.params), &self.typed_params, self.cached)#fn_await?;
+                let stream = #client::raw(self.client, self.query, &self.params, &self.typed_params, self.cached)#fn_await?;
                 let mapped = stream
                     #raw_pre
                     .map(move |res|
@@ -377,22 +446,7 @@ fn gen_query_fn(
 
     let params_ty_val: Vec<_> = order
         .iter()
-        .map(|idx| {
-            let pg_ty = param_field[*idx].ty.pg_ty();
-            let ty_str = match pg_ty.clone() {
-                postgres_types::Type::UUID => "postgres_types::Type::UUID".to_string(),
-                postgres_types::Type::TEXT => "postgres_types::Type::TEXT".to_string(),
-                postgres_types::Type::VARCHAR => "postgres_types::Type::VARCHAR".to_string(),
-                postgres_types::Type::INT4 => "postgres_types::Type::INT4".to_string(),
-                postgres_types::Type::TIMESTAMPTZ => {
-                    "postgres_types::Type::TIMESTAMPTZ".to_string()
-                }
-                pg_ty => unimplemented!("{}", pg_ty),
-            };
-            syn::parse_str::<syn::Type>(&ty_str).unwrap()
-            // param_field[*idx].
-            // syn::parse_str::<syn::Type>(&param_field[*idx].param_ergo_ty(traits, ctx)).unwrap()
-        })
+        .map(|idx| type_expr(param_field[*idx].ty.pg_ty()))
         .collect();
 
     let params_name: Vec<_> = order

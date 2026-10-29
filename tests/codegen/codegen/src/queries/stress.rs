@@ -743,6 +743,7 @@ pub mod sync {
     pub struct EverythingQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::EverythingBorrowed, postgres::Error>,
@@ -759,6 +760,7 @@ pub mod sync {
             EverythingQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -766,15 +768,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -789,7 +802,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -804,6 +818,7 @@ pub mod sync {
     pub struct EverythingNullQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::EverythingNullBorrowed, postgres::Error>,
@@ -820,6 +835,7 @@ pub mod sync {
             EverythingNullQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -827,15 +843,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -850,7 +877,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -865,6 +893,7 @@ pub mod sync {
     pub struct StringQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<&str, postgres::Error>,
@@ -878,6 +907,7 @@ pub mod sync {
             StringQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -885,15 +915,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -908,7 +949,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -923,6 +965,7 @@ pub mod sync {
     pub struct EverythingArrayQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(&postgres::Row) -> Result<super::EverythingArrayBorrowed, postgres::Error>,
@@ -939,6 +982,7 @@ pub mod sync {
             EverythingArrayQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -946,15 +990,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -969,7 +1024,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -984,6 +1040,7 @@ pub mod sync {
     pub struct EverythingArrayNullQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor:
@@ -1001,6 +1058,7 @@ pub mod sync {
             EverythingArrayNullQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -1008,15 +1066,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -1031,7 +1100,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -1046,6 +1116,7 @@ pub mod sync {
     pub struct NightmareCompositeQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor:
@@ -1063,6 +1134,7 @@ pub mod sync {
             NightmareCompositeQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -1070,15 +1142,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -1093,7 +1176,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -1108,6 +1192,7 @@ pub mod sync {
     pub struct SchemaNightmareCompositeQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s postgres::Statement>,
         extractor: fn(
@@ -1127,6 +1212,7 @@ pub mod sync {
             SchemaNightmareCompositeQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -1134,15 +1220,26 @@ pub mod sync {
             }
         }
         pub fn one(self) -> Result<T, postgres::Error> {
-            let row = crate::client::sync::one(self.client, self.query, &self.params, self.cached)?;
+            let row = crate::client::sync::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
         }
         pub fn opt(self) -> Result<Option<T>, postgres::Error> {
-            let opt_row =
-                crate::client::sync::opt(self.client, self.query, &self.params, self.cached)?;
+            let opt_row = crate::client::sync::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -1157,7 +1254,8 @@ pub mod sync {
             let stream = crate::client::sync::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )?;
             let mapped = stream.iterator().map(move |res| {
@@ -1188,6 +1286,7 @@ pub mod sync {
             EverythingQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor:
@@ -1255,6 +1354,7 @@ pub mod sync {
             EverythingNullQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor:
@@ -1372,46 +1472,202 @@ pub mod sync {
             macaddr_: &'a eui48::MacAddress,
             numeric_: &'a rust_decimal::Decimal,
         ) -> Result<u64, postgres::Error> {
-            client.execute(
+            client.execute_typed(
                 self.0,
                 &[
-                    bool_,
-                    boolean_,
-                    char_,
-                    smallint_,
-                    int2_,
-                    smallserial_,
-                    serial2_,
-                    int_,
-                    int4_,
-                    serial_,
-                    serial4_,
-                    bingint_,
-                    int8_,
-                    bigserial_,
-                    serial8_,
-                    float4_,
-                    real_,
-                    float8_,
-                    double_precision_,
-                    text_,
-                    varchar_,
-                    name_,
-                    citext_,
-                    ltree_,
-                    bytea_,
-                    timestamp_,
-                    timestamp_without_time_zone_,
-                    timestamptz_,
-                    timestamp_with_time_zone_,
-                    date_,
-                    time_,
-                    json_,
-                    jsonb_,
-                    uuid_,
-                    inet_,
-                    macaddr_,
-                    numeric_,
+                    (
+                        bool_,
+                        postgres_types::Type::from_oid(16u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        boolean_,
+                        postgres_types::Type::from_oid(16u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        char_,
+                        postgres_types::Type::from_oid(18u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        smallint_,
+                        postgres_types::Type::from_oid(21u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int2_,
+                        postgres_types::Type::from_oid(21u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        smallserial_,
+                        postgres_types::Type::from_oid(21u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        serial2_,
+                        postgres_types::Type::from_oid(21u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int_,
+                        postgres_types::Type::from_oid(23u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int4_,
+                        postgres_types::Type::from_oid(23u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        serial_,
+                        postgres_types::Type::from_oid(23u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        serial4_,
+                        postgres_types::Type::from_oid(23u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        bingint_,
+                        postgres_types::Type::from_oid(20u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int8_,
+                        postgres_types::Type::from_oid(20u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        bigserial_,
+                        postgres_types::Type::from_oid(20u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        serial8_,
+                        postgres_types::Type::from_oid(20u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        float4_,
+                        postgres_types::Type::from_oid(700u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        real_,
+                        postgres_types::Type::from_oid(700u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        float8_,
+                        postgres_types::Type::from_oid(701u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        double_precision_,
+                        postgres_types::Type::from_oid(701u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        text_,
+                        postgres_types::Type::from_oid(25u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        varchar_,
+                        postgres_types::Type::from_oid(1043u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        name_,
+                        postgres_types::Type::from_oid(19u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        citext_,
+                        postgres_types::Type::new(
+                            "citext".to_owned(),
+                            16874u32,
+                            postgres_types::Kind::Simple,
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        ltree_,
+                        postgres_types::Type::new(
+                            "ltree".to_owned(),
+                            16979u32,
+                            postgres_types::Kind::Simple,
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        bytea_,
+                        postgres_types::Type::from_oid(17u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamp_,
+                        postgres_types::Type::from_oid(1114u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamp_without_time_zone_,
+                        postgres_types::Type::from_oid(1114u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamptz_,
+                        postgres_types::Type::from_oid(1184u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamp_with_time_zone_,
+                        postgres_types::Type::from_oid(1184u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        date_,
+                        postgres_types::Type::from_oid(1082u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        time_,
+                        postgres_types::Type::from_oid(1083u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        json_,
+                        postgres_types::Type::from_oid(114u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        jsonb_,
+                        postgres_types::Type::from_oid(3802u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        uuid_,
+                        postgres_types::Type::from_oid(2950u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        inet_,
+                        postgres_types::Type::from_oid(869u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        macaddr_,
+                        postgres_types::Type::from_oid(829u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        numeric_,
+                        postgres_types::Type::from_oid(1700u32)
+                            .expect("known built-in postgres type"),
+                    ),
                 ],
             )
         }
@@ -1506,6 +1762,15 @@ pub mod sync {
             StringQuery {
                 client,
                 params: [path],
+                typed_params: [(
+                    path,
+                    postgres_types::Type::new(
+                        "ltree".to_owned(),
+                        16979u32,
+                        postgres_types::Kind::Simple,
+                        "public".to_owned(),
+                    ),
+                )],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row| Ok(row.try_get(0)?),
@@ -1532,6 +1797,7 @@ pub mod sync {
             EverythingArrayQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -1594,6 +1860,7 @@ pub mod sync {
             EverythingArrayNullQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -1731,40 +1998,182 @@ pub mod sync {
             macaddr_: &'a T38,
             numeric_: &'a T39,
         ) -> Result<u64, postgres::Error> {
-            client.execute(
+            client.execute_typed(
                 self.0,
                 &[
-                    bool_,
-                    boolean_,
-                    char_,
-                    smallint_,
-                    int2_,
-                    int_,
-                    int4_,
-                    bingint_,
-                    int8_,
-                    float4_,
-                    real_,
-                    float8_,
-                    double_precision_,
-                    text_,
-                    varchar_,
-                    name_,
-                    citext_,
-                    ltree_,
-                    bytea_,
-                    timestamp_,
-                    timestamp_without_time_zone_,
-                    timestamptz_,
-                    timestamp_with_time_zone_,
-                    date_,
-                    time_,
-                    json_,
-                    jsonb_,
-                    uuid_,
-                    inet_,
-                    macaddr_,
-                    numeric_,
+                    (
+                        bool_,
+                        postgres_types::Type::from_oid(1000u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        boolean_,
+                        postgres_types::Type::from_oid(1000u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        char_,
+                        postgres_types::Type::from_oid(1002u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        smallint_,
+                        postgres_types::Type::from_oid(1005u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int2_,
+                        postgres_types::Type::from_oid(1005u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int_,
+                        postgres_types::Type::from_oid(1007u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int4_,
+                        postgres_types::Type::from_oid(1007u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        bingint_,
+                        postgres_types::Type::from_oid(1016u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        int8_,
+                        postgres_types::Type::from_oid(1016u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        float4_,
+                        postgres_types::Type::from_oid(1021u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        real_,
+                        postgres_types::Type::from_oid(1021u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        float8_,
+                        postgres_types::Type::from_oid(1022u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        double_precision_,
+                        postgres_types::Type::from_oid(1022u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        text_,
+                        postgres_types::Type::from_oid(1009u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        varchar_,
+                        postgres_types::Type::from_oid(1015u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        name_,
+                        postgres_types::Type::from_oid(1003u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        citext_,
+                        postgres_types::Type::new(
+                            "_citext".to_owned(),
+                            16879u32,
+                            postgres_types::Kind::Array(postgres_types::Type::new(
+                                "citext".to_owned(),
+                                16874u32,
+                                postgres_types::Kind::Simple,
+                                "public".to_owned(),
+                            )),
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        ltree_,
+                        postgres_types::Type::new(
+                            "_ltree".to_owned(),
+                            16982u32,
+                            postgres_types::Kind::Array(postgres_types::Type::new(
+                                "ltree".to_owned(),
+                                16979u32,
+                                postgres_types::Kind::Simple,
+                                "public".to_owned(),
+                            )),
+                            "public".to_owned(),
+                        ),
+                    ),
+                    (
+                        bytea_,
+                        postgres_types::Type::from_oid(1001u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamp_,
+                        postgres_types::Type::from_oid(1115u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamp_without_time_zone_,
+                        postgres_types::Type::from_oid(1115u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamptz_,
+                        postgres_types::Type::from_oid(1185u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        timestamp_with_time_zone_,
+                        postgres_types::Type::from_oid(1185u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        date_,
+                        postgres_types::Type::from_oid(1182u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        time_,
+                        postgres_types::Type::from_oid(1183u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        json_,
+                        postgres_types::Type::from_oid(199u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        jsonb_,
+                        postgres_types::Type::from_oid(3807u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        uuid_,
+                        postgres_types::Type::from_oid(2951u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        inet_,
+                        postgres_types::Type::from_oid(1041u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        macaddr_,
+                        postgres_types::Type::from_oid(1040u32)
+                            .expect("known built-in postgres type"),
+                    ),
+                    (
+                        numeric_,
+                        postgres_types::Type::from_oid(1231u32)
+                            .expect("known built-in postgres type"),
+                    ),
                 ],
             )
         }
@@ -1963,6 +2372,7 @@ pub mod sync {
             NightmareCompositeQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row| Ok(row.try_get(0)?),
@@ -1987,7 +2397,87 @@ pub mod sync {
             client: &'c mut C,
             composite: &'a crate::types::NightmareCompositeParams<'a>,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[composite])
+            client.execute_typed(
+                self.0,
+                &[(
+                    composite,
+                    postgres_types::Type::new(
+                        "nightmare_composite".to_owned(),
+                        17327u32,
+                        postgres_types::Kind::Composite(vec![
+                            postgres_types::Field::new(
+                                "custom".to_owned(),
+                                postgres_types::Type::new(
+                                    "_custom_composite".to_owned(),
+                                    17318u32,
+                                    postgres_types::Kind::Array(postgres_types::Type::new(
+                                        "custom_composite".to_owned(),
+                                        17319u32,
+                                        postgres_types::Kind::Composite(vec![
+                                            postgres_types::Field::new(
+                                                "wow".to_owned(),
+                                                postgres_types::Type::from_oid(25u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            postgres_types::Field::new(
+                                                "such_cool".to_owned(),
+                                                postgres_types::Type::from_oid(23u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            postgres_types::Field::new(
+                                                "nice".to_owned(),
+                                                postgres_types::Type::new(
+                                                    "spongebob_character".to_owned(),
+                                                    17310u32,
+                                                    postgres_types::Kind::Enum(vec![
+                                                        "Bob".to_owned(),
+                                                        "Patrick".to_owned(),
+                                                        "Squidward".to_owned(),
+                                                    ]),
+                                                    "public".to_owned(),
+                                                ),
+                                            ),
+                                        ]),
+                                        "public".to_owned(),
+                                    )),
+                                    "public".to_owned(),
+                                ),
+                            ),
+                            postgres_types::Field::new(
+                                "spongebob".to_owned(),
+                                postgres_types::Type::new(
+                                    "_spongebob_character".to_owned(),
+                                    17309u32,
+                                    postgres_types::Kind::Array(postgres_types::Type::new(
+                                        "spongebob_character".to_owned(),
+                                        17310u32,
+                                        postgres_types::Kind::Enum(vec![
+                                            "Bob".to_owned(),
+                                            "Patrick".to_owned(),
+                                            "Squidward".to_owned(),
+                                        ]),
+                                        "public".to_owned(),
+                                    )),
+                                    "public".to_owned(),
+                                ),
+                            ),
+                            postgres_types::Field::new(
+                                "domain".to_owned(),
+                                postgres_types::Type::new(
+                                    "my_domain".to_owned(),
+                                    17321u32,
+                                    postgres_types::Kind::Domain(
+                                        postgres_types::Type::from_oid(25u32)
+                                            .expect("known built-in postgres type"),
+                                    ),
+                                    "public".to_owned(),
+                                ),
+                            ),
+                        ]),
+                        "public".to_owned(),
+                    ),
+                )],
+            )
         }
     }
     pub struct SelectSchemaNightmareStmt(&'static str, Option<postgres::Statement>);
@@ -2010,6 +2500,7 @@ pub mod sync {
             SchemaNightmareCompositeQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row| Ok(row.try_get(0)?),
@@ -2034,7 +2525,87 @@ pub mod sync {
             client: &'c mut C,
             composite: &'a crate::types::schema::NightmareCompositeParams<'a>,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[composite])
+            client.execute_typed(
+                self.0,
+                &[(
+                    composite,
+                    postgres_types::Type::new(
+                        "nightmare_composite".to_owned(),
+                        17337u32,
+                        postgres_types::Kind::Composite(vec![
+                            postgres_types::Field::new(
+                                "custom".to_owned(),
+                                postgres_types::Type::new(
+                                    "_custom_composite".to_owned(),
+                                    17318u32,
+                                    postgres_types::Kind::Array(postgres_types::Type::new(
+                                        "custom_composite".to_owned(),
+                                        17319u32,
+                                        postgres_types::Kind::Composite(vec![
+                                            postgres_types::Field::new(
+                                                "wow".to_owned(),
+                                                postgres_types::Type::from_oid(25u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            postgres_types::Field::new(
+                                                "such_cool".to_owned(),
+                                                postgres_types::Type::from_oid(23u32)
+                                                    .expect("known built-in postgres type"),
+                                            ),
+                                            postgres_types::Field::new(
+                                                "nice".to_owned(),
+                                                postgres_types::Type::new(
+                                                    "spongebob_character".to_owned(),
+                                                    17310u32,
+                                                    postgres_types::Kind::Enum(vec![
+                                                        "Bob".to_owned(),
+                                                        "Patrick".to_owned(),
+                                                        "Squidward".to_owned(),
+                                                    ]),
+                                                    "public".to_owned(),
+                                                ),
+                                            ),
+                                        ]),
+                                        "public".to_owned(),
+                                    )),
+                                    "public".to_owned(),
+                                ),
+                            ),
+                            postgres_types::Field::new(
+                                "spongebob".to_owned(),
+                                postgres_types::Type::new(
+                                    "_spongebob_character".to_owned(),
+                                    17309u32,
+                                    postgres_types::Kind::Array(postgres_types::Type::new(
+                                        "spongebob_character".to_owned(),
+                                        17310u32,
+                                        postgres_types::Kind::Enum(vec![
+                                            "Bob".to_owned(),
+                                            "Patrick".to_owned(),
+                                            "Squidward".to_owned(),
+                                        ]),
+                                        "public".to_owned(),
+                                    )),
+                                    "public".to_owned(),
+                                ),
+                            ),
+                            postgres_types::Field::new(
+                                "domain".to_owned(),
+                                postgres_types::Type::new(
+                                    "my_domain".to_owned(),
+                                    17321u32,
+                                    postgres_types::Kind::Domain(
+                                        postgres_types::Type::from_oid(25u32)
+                                            .expect("known built-in postgres type"),
+                                    ),
+                                    "public".to_owned(),
+                                ),
+                            ),
+                        ]),
+                        "schema".to_owned(),
+                    ),
+                )],
+            )
         }
     }
 }
@@ -2044,6 +2615,7 @@ pub mod async_ {
     pub struct EverythingQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor:
@@ -2061,6 +2633,7 @@ pub mod async_ {
             EverythingQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2068,18 +2641,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2096,7 +2679,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2114,6 +2698,7 @@ pub mod async_ {
     pub struct EverythingNullQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(
@@ -2132,6 +2717,7 @@ pub mod async_ {
             EverythingNullQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2139,18 +2725,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2167,7 +2763,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2185,6 +2782,7 @@ pub mod async_ {
     pub struct StringQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(&tokio_postgres::Row) -> Result<&str, tokio_postgres::Error>,
@@ -2198,6 +2796,7 @@ pub mod async_ {
             StringQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2205,18 +2804,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2233,7 +2842,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2251,6 +2861,7 @@ pub mod async_ {
     pub struct EverythingArrayQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(
@@ -2269,6 +2880,7 @@ pub mod async_ {
             EverythingArrayQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2276,18 +2888,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2304,7 +2926,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2322,6 +2945,7 @@ pub mod async_ {
     pub struct EverythingArrayNullQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(
@@ -2340,6 +2964,7 @@ pub mod async_ {
             EverythingArrayNullQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2347,18 +2972,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2375,7 +3010,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2393,6 +3029,7 @@ pub mod async_ {
     pub struct NightmareCompositeQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor: fn(
@@ -2412,6 +3049,7 @@ pub mod async_ {
             NightmareCompositeQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2419,18 +3057,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2447,7 +3095,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2465,6 +3114,7 @@ pub mod async_ {
     pub struct SchemaNightmareCompositeQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
+        typed_params: [(&'a (dyn postgres_types::ToSql + Sync), postgres_types::Type); N],
         query: &'static str,
         cached: Option<&'s tokio_postgres::Statement>,
         extractor:
@@ -2485,6 +3135,7 @@ pub mod async_ {
             SchemaNightmareCompositeQuery {
                 client: self.client,
                 params: self.params,
+                typed_params: self.typed_params,
                 query: self.query,
                 cached: self.cached,
                 extractor: self.extractor,
@@ -2492,18 +3143,28 @@ pub mod async_ {
             }
         }
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-            let row =
-                crate::client::async_::one(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let row = crate::client::async_::one(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
         }
         pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-            let opt_row =
-                crate::client::async_::opt(self.client, self.query, &self.params, self.cached)
-                    .await?;
+            let opt_row = crate::client::async_::opt(
+                self.client,
+                self.query,
+                &self.params,
+                &self.typed_params,
+                self.cached,
+            )
+            .await?;
             Ok(opt_row
                 .map(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -2520,7 +3181,8 @@ pub mod async_ {
             let stream = crate::client::async_::raw(
                 self.client,
                 self.query,
-                crate::slice_iter(&self.params),
+                &self.params,
+                &self.typed_params,
                 self.cached,
             )
             .await?;
@@ -2554,6 +3216,7 @@ pub mod async_ {
             EverythingQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -2622,6 +3285,7 @@ pub mod async_ {
             EverythingNullQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -2741,46 +3405,202 @@ pub mod async_ {
             numeric_: &'a rust_decimal::Decimal,
         ) -> Result<u64, tokio_postgres::Error> {
             client
-                .execute(
+                .execute_typed(
                     self.0,
                     &[
-                        bool_,
-                        boolean_,
-                        char_,
-                        smallint_,
-                        int2_,
-                        smallserial_,
-                        serial2_,
-                        int_,
-                        int4_,
-                        serial_,
-                        serial4_,
-                        bingint_,
-                        int8_,
-                        bigserial_,
-                        serial8_,
-                        float4_,
-                        real_,
-                        float8_,
-                        double_precision_,
-                        text_,
-                        varchar_,
-                        name_,
-                        citext_,
-                        ltree_,
-                        bytea_,
-                        timestamp_,
-                        timestamp_without_time_zone_,
-                        timestamptz_,
-                        timestamp_with_time_zone_,
-                        date_,
-                        time_,
-                        json_,
-                        jsonb_,
-                        uuid_,
-                        inet_,
-                        macaddr_,
-                        numeric_,
+                        (
+                            bool_,
+                            postgres_types::Type::from_oid(16u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            boolean_,
+                            postgres_types::Type::from_oid(16u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            char_,
+                            postgres_types::Type::from_oid(18u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            smallint_,
+                            postgres_types::Type::from_oid(21u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int2_,
+                            postgres_types::Type::from_oid(21u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            smallserial_,
+                            postgres_types::Type::from_oid(21u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            serial2_,
+                            postgres_types::Type::from_oid(21u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int_,
+                            postgres_types::Type::from_oid(23u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int4_,
+                            postgres_types::Type::from_oid(23u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            serial_,
+                            postgres_types::Type::from_oid(23u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            serial4_,
+                            postgres_types::Type::from_oid(23u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            bingint_,
+                            postgres_types::Type::from_oid(20u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int8_,
+                            postgres_types::Type::from_oid(20u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            bigserial_,
+                            postgres_types::Type::from_oid(20u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            serial8_,
+                            postgres_types::Type::from_oid(20u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            float4_,
+                            postgres_types::Type::from_oid(700u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            real_,
+                            postgres_types::Type::from_oid(700u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            float8_,
+                            postgres_types::Type::from_oid(701u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            double_precision_,
+                            postgres_types::Type::from_oid(701u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            text_,
+                            postgres_types::Type::from_oid(25u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            varchar_,
+                            postgres_types::Type::from_oid(1043u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            name_,
+                            postgres_types::Type::from_oid(19u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            citext_,
+                            postgres_types::Type::new(
+                                "citext".to_owned(),
+                                16874u32,
+                                postgres_types::Kind::Simple,
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            ltree_,
+                            postgres_types::Type::new(
+                                "ltree".to_owned(),
+                                16979u32,
+                                postgres_types::Kind::Simple,
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            bytea_,
+                            postgres_types::Type::from_oid(17u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamp_,
+                            postgres_types::Type::from_oid(1114u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamp_without_time_zone_,
+                            postgres_types::Type::from_oid(1114u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamptz_,
+                            postgres_types::Type::from_oid(1184u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamp_with_time_zone_,
+                            postgres_types::Type::from_oid(1184u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            date_,
+                            postgres_types::Type::from_oid(1082u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            time_,
+                            postgres_types::Type::from_oid(1083u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            json_,
+                            postgres_types::Type::from_oid(114u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            jsonb_,
+                            postgres_types::Type::from_oid(3802u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            uuid_,
+                            postgres_types::Type::from_oid(2950u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            inet_,
+                            postgres_types::Type::from_oid(869u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            macaddr_,
+                            postgres_types::Type::from_oid(829u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            numeric_,
+                            postgres_types::Type::from_oid(1700u32)
+                                .expect("known built-in postgres type"),
+                        ),
                     ],
                 )
                 .await
@@ -2878,6 +3698,15 @@ pub mod async_ {
             StringQuery {
                 client,
                 params: [path],
+                typed_params: [(
+                    path,
+                    postgres_types::Type::new(
+                        "ltree".to_owned(),
+                        16979u32,
+                        postgres_types::Kind::Simple,
+                        "public".to_owned(),
+                    ),
+                )],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row| Ok(row.try_get(0)?),
@@ -2904,6 +3733,7 @@ pub mod async_ {
             EverythingArrayQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |
@@ -2966,6 +3796,7 @@ pub mod async_ {
             EverythingArrayNullQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row: &tokio_postgres::Row| -> Result<
@@ -3105,40 +3936,182 @@ pub mod async_ {
             numeric_: &'a T39,
         ) -> Result<u64, tokio_postgres::Error> {
             client
-                .execute(
+                .execute_typed(
                     self.0,
                     &[
-                        bool_,
-                        boolean_,
-                        char_,
-                        smallint_,
-                        int2_,
-                        int_,
-                        int4_,
-                        bingint_,
-                        int8_,
-                        float4_,
-                        real_,
-                        float8_,
-                        double_precision_,
-                        text_,
-                        varchar_,
-                        name_,
-                        citext_,
-                        ltree_,
-                        bytea_,
-                        timestamp_,
-                        timestamp_without_time_zone_,
-                        timestamptz_,
-                        timestamp_with_time_zone_,
-                        date_,
-                        time_,
-                        json_,
-                        jsonb_,
-                        uuid_,
-                        inet_,
-                        macaddr_,
-                        numeric_,
+                        (
+                            bool_,
+                            postgres_types::Type::from_oid(1000u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            boolean_,
+                            postgres_types::Type::from_oid(1000u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            char_,
+                            postgres_types::Type::from_oid(1002u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            smallint_,
+                            postgres_types::Type::from_oid(1005u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int2_,
+                            postgres_types::Type::from_oid(1005u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int_,
+                            postgres_types::Type::from_oid(1007u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int4_,
+                            postgres_types::Type::from_oid(1007u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            bingint_,
+                            postgres_types::Type::from_oid(1016u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            int8_,
+                            postgres_types::Type::from_oid(1016u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            float4_,
+                            postgres_types::Type::from_oid(1021u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            real_,
+                            postgres_types::Type::from_oid(1021u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            float8_,
+                            postgres_types::Type::from_oid(1022u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            double_precision_,
+                            postgres_types::Type::from_oid(1022u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            text_,
+                            postgres_types::Type::from_oid(1009u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            varchar_,
+                            postgres_types::Type::from_oid(1015u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            name_,
+                            postgres_types::Type::from_oid(1003u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            citext_,
+                            postgres_types::Type::new(
+                                "_citext".to_owned(),
+                                16879u32,
+                                postgres_types::Kind::Array(postgres_types::Type::new(
+                                    "citext".to_owned(),
+                                    16874u32,
+                                    postgres_types::Kind::Simple,
+                                    "public".to_owned(),
+                                )),
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            ltree_,
+                            postgres_types::Type::new(
+                                "_ltree".to_owned(),
+                                16982u32,
+                                postgres_types::Kind::Array(postgres_types::Type::new(
+                                    "ltree".to_owned(),
+                                    16979u32,
+                                    postgres_types::Kind::Simple,
+                                    "public".to_owned(),
+                                )),
+                                "public".to_owned(),
+                            ),
+                        ),
+                        (
+                            bytea_,
+                            postgres_types::Type::from_oid(1001u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamp_,
+                            postgres_types::Type::from_oid(1115u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamp_without_time_zone_,
+                            postgres_types::Type::from_oid(1115u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamptz_,
+                            postgres_types::Type::from_oid(1185u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            timestamp_with_time_zone_,
+                            postgres_types::Type::from_oid(1185u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            date_,
+                            postgres_types::Type::from_oid(1182u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            time_,
+                            postgres_types::Type::from_oid(1183u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            json_,
+                            postgres_types::Type::from_oid(199u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            jsonb_,
+                            postgres_types::Type::from_oid(3807u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            uuid_,
+                            postgres_types::Type::from_oid(2951u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            inet_,
+                            postgres_types::Type::from_oid(1041u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            macaddr_,
+                            postgres_types::Type::from_oid(1040u32)
+                                .expect("known built-in postgres type"),
+                        ),
+                        (
+                            numeric_,
+                            postgres_types::Type::from_oid(1231u32)
+                                .expect("known built-in postgres type"),
+                        ),
                     ],
                 )
                 .await
@@ -3340,6 +4313,7 @@ pub mod async_ {
             NightmareCompositeQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row| Ok(row.try_get(0)?),
@@ -3364,7 +4338,89 @@ pub mod async_ {
             client: &'c C,
             composite: &'a crate::types::NightmareCompositeParams<'a>,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[composite]).await
+            client
+                .execute_typed(
+                    self.0,
+                    &[(
+                        composite,
+                        postgres_types::Type::new(
+                            "nightmare_composite".to_owned(),
+                            17327u32,
+                            postgres_types::Kind::Composite(vec![
+                                postgres_types::Field::new(
+                                    "custom".to_owned(),
+                                    postgres_types::Type::new(
+                                        "_custom_composite".to_owned(),
+                                        17318u32,
+                                        postgres_types::Kind::Array(postgres_types::Type::new(
+                                            "custom_composite".to_owned(),
+                                            17319u32,
+                                            postgres_types::Kind::Composite(vec![
+                                                postgres_types::Field::new(
+                                                    "wow".to_owned(),
+                                                    postgres_types::Type::from_oid(25u32)
+                                                        .expect("known built-in postgres type"),
+                                                ),
+                                                postgres_types::Field::new(
+                                                    "such_cool".to_owned(),
+                                                    postgres_types::Type::from_oid(23u32)
+                                                        .expect("known built-in postgres type"),
+                                                ),
+                                                postgres_types::Field::new(
+                                                    "nice".to_owned(),
+                                                    postgres_types::Type::new(
+                                                        "spongebob_character".to_owned(),
+                                                        17310u32,
+                                                        postgres_types::Kind::Enum(vec![
+                                                            "Bob".to_owned(),
+                                                            "Patrick".to_owned(),
+                                                            "Squidward".to_owned(),
+                                                        ]),
+                                                        "public".to_owned(),
+                                                    ),
+                                                ),
+                                            ]),
+                                            "public".to_owned(),
+                                        )),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "spongebob".to_owned(),
+                                    postgres_types::Type::new(
+                                        "_spongebob_character".to_owned(),
+                                        17309u32,
+                                        postgres_types::Kind::Array(postgres_types::Type::new(
+                                            "spongebob_character".to_owned(),
+                                            17310u32,
+                                            postgres_types::Kind::Enum(vec![
+                                                "Bob".to_owned(),
+                                                "Patrick".to_owned(),
+                                                "Squidward".to_owned(),
+                                            ]),
+                                            "public".to_owned(),
+                                        )),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "domain".to_owned(),
+                                    postgres_types::Type::new(
+                                        "my_domain".to_owned(),
+                                        17321u32,
+                                        postgres_types::Kind::Domain(
+                                            postgres_types::Type::from_oid(25u32)
+                                                .expect("known built-in postgres type"),
+                                        ),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                            ]),
+                            "public".to_owned(),
+                        ),
+                    )],
+                )
+                .await
         }
     }
     pub struct SelectSchemaNightmareStmt(&'static str, Option<tokio_postgres::Statement>);
@@ -3387,6 +4443,7 @@ pub mod async_ {
             SchemaNightmareCompositeQuery {
                 client,
                 params: [],
+                typed_params: [],
                 query: self.0,
                 cached: self.1.as_ref(),
                 extractor: |row| Ok(row.try_get(0)?),
@@ -3411,7 +4468,89 @@ pub mod async_ {
             client: &'c C,
             composite: &'a crate::types::schema::NightmareCompositeParams<'a>,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[composite]).await
+            client
+                .execute_typed(
+                    self.0,
+                    &[(
+                        composite,
+                        postgres_types::Type::new(
+                            "nightmare_composite".to_owned(),
+                            17337u32,
+                            postgres_types::Kind::Composite(vec![
+                                postgres_types::Field::new(
+                                    "custom".to_owned(),
+                                    postgres_types::Type::new(
+                                        "_custom_composite".to_owned(),
+                                        17318u32,
+                                        postgres_types::Kind::Array(postgres_types::Type::new(
+                                            "custom_composite".to_owned(),
+                                            17319u32,
+                                            postgres_types::Kind::Composite(vec![
+                                                postgres_types::Field::new(
+                                                    "wow".to_owned(),
+                                                    postgres_types::Type::from_oid(25u32)
+                                                        .expect("known built-in postgres type"),
+                                                ),
+                                                postgres_types::Field::new(
+                                                    "such_cool".to_owned(),
+                                                    postgres_types::Type::from_oid(23u32)
+                                                        .expect("known built-in postgres type"),
+                                                ),
+                                                postgres_types::Field::new(
+                                                    "nice".to_owned(),
+                                                    postgres_types::Type::new(
+                                                        "spongebob_character".to_owned(),
+                                                        17310u32,
+                                                        postgres_types::Kind::Enum(vec![
+                                                            "Bob".to_owned(),
+                                                            "Patrick".to_owned(),
+                                                            "Squidward".to_owned(),
+                                                        ]),
+                                                        "public".to_owned(),
+                                                    ),
+                                                ),
+                                            ]),
+                                            "public".to_owned(),
+                                        )),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "spongebob".to_owned(),
+                                    postgres_types::Type::new(
+                                        "_spongebob_character".to_owned(),
+                                        17309u32,
+                                        postgres_types::Kind::Array(postgres_types::Type::new(
+                                            "spongebob_character".to_owned(),
+                                            17310u32,
+                                            postgres_types::Kind::Enum(vec![
+                                                "Bob".to_owned(),
+                                                "Patrick".to_owned(),
+                                                "Squidward".to_owned(),
+                                            ]),
+                                            "public".to_owned(),
+                                        )),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                                postgres_types::Field::new(
+                                    "domain".to_owned(),
+                                    postgres_types::Type::new(
+                                        "my_domain".to_owned(),
+                                        17321u32,
+                                        postgres_types::Kind::Domain(
+                                            postgres_types::Type::from_oid(25u32)
+                                                .expect("known built-in postgres type"),
+                                        ),
+                                        "public".to_owned(),
+                                    ),
+                                ),
+                            ]),
+                            "schema".to_owned(),
+                        ),
+                    )],
+                )
+                .await
         }
     }
 }

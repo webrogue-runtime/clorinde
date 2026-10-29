@@ -5,120 +5,195 @@ use deadpool_postgres::{
     Client as DeadpoolClient, ClientWrapper, Transaction as DeadpoolTransaction,
 };
 use tokio_postgres::{
-    Client as PgClient, Error, RowStream, Statement, ToStatement, Transaction as PgTransaction,
-    types::BorrowToSql,
+    Client as PgClient, Error, Row, RowStream, Statement, ToStatement,
+    Transaction as PgTransaction,
+    types::{BorrowToSql, ToSql},
 };
 impl GenericClient for DeadpoolClient {
     fn stmt_cache() -> bool {
         true
     }
-    async fn prepare(&self, query: &str) -> Result<Statement, Error> {
-        ClientWrapper::prepare_cached(self, query).await
+    fn prepare(
+        &self,
+        query: &str,
+    ) -> impl std::future::Future<Output = Result<Statement, Error>> + Send {
+        async move { ClientWrapper::prepare_cached(self, query).await }
     }
-    async fn execute<T>(
+    fn execute<T>(
         &self,
         query: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<u64, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<u64, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgClient::execute(self, query, params).await
+        async move { PgClient::execute(self, query, params).await }
     }
-    async fn query_one<T>(
+    fn execute_typed(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<u64, Error>> + Send {
+        async move { PgClient::execute_typed(self, query, typed_params).await }
+    }
+    fn query_one<T>(
         &self,
         statement: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<tokio_postgres::Row, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<Row, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgClient::query_one(self, statement, params).await
+        async move { PgClient::query_one(self, statement, params).await }
     }
-    async fn query_opt<T>(
+    fn query_typed_one(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<Row, Error>> + Send {
+        async move { PgClient::query_typed_one(self, query, typed_params).await }
+    }
+    fn query_opt<T>(
         &self,
         statement: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<Option<tokio_postgres::Row>, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<Option<Row>, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgClient::query_opt(self, statement, params).await
+        async move { PgClient::query_opt(self, statement, params).await }
     }
-    async fn query<T>(
+    fn query_typed_opt(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<Option<Row>, Error>> + Send {
+        async move { PgClient::query_typed_opt(self, query, typed_params).await }
+    }
+    fn query<T>(
         &self,
         query: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<Vec<tokio_postgres::Row>, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<Vec<Row>, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgClient::query(self, query, params).await
+        async move { PgClient::query(self, query, params).await }
     }
-    async fn query_raw<T, I>(&self, statement: &T, params: I) -> Result<RowStream, Error>
+    fn query_raw<T, I>(
+        &self,
+        statement: &T,
+        params: I,
+    ) -> impl std::future::Future<Output = Result<RowStream, Error>> + Send
     where
         T: ?Sized + ToStatement + Sync + Send,
         I: IntoIterator + Sync + Send,
         I::IntoIter: ExactSizeIterator,
         I::Item: BorrowToSql,
     {
-        PgClient::query_raw(self, statement, params).await
+        async move { PgClient::query_raw(self, statement, params).await }
+    }
+    fn query_typed_raw(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<RowStream, Error>> + Send {
+        async move {
+            PgClient::query_typed_raw(self, query, crate::slice_iter_typed(typed_params)).await
+        }
     }
 }
 impl GenericClient for DeadpoolTransaction<'_> {
     fn stmt_cache() -> bool {
         false
     }
-    async fn prepare(&self, query: &str) -> Result<Statement, Error> {
-        DeadpoolTransaction::prepare_cached(self, query).await
+    fn prepare(
+        &self,
+        query: &str,
+    ) -> impl std::future::Future<Output = Result<Statement, Error>> + Send {
+        async move { DeadpoolTransaction::prepare_cached(self, query).await }
     }
-    async fn execute<T>(
+    fn execute<T>(
         &self,
         query: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<u64, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<u64, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgTransaction::execute(self, query, params).await
+        async move { PgTransaction::execute(self, query, params).await }
     }
-    async fn query_one<T>(
+    fn execute_typed(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<u64, Error>> + Send {
+        async move { PgTransaction::execute_typed(self, query, typed_params).await }
+    }
+    fn query_one<T>(
         &self,
         statement: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<tokio_postgres::Row, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<Row, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgTransaction::query_one(self, statement, params).await
+        async move { PgTransaction::query_one(self, statement, params).await }
     }
-    async fn query_opt<T>(
+    fn query_typed_one(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<Row, Error>> + Send {
+        async move { PgTransaction::query_typed_one(self, query, typed_params).await }
+    }
+    fn query_opt<T>(
         &self,
         statement: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<Option<tokio_postgres::Row>, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<Option<Row>, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgTransaction::query_opt(self, statement, params).await
+        async move { PgTransaction::query_opt(self, statement, params).await }
     }
-    async fn query<T>(
+    fn query_typed_opt(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<Option<Row>, Error>> + Send {
+        async move { PgTransaction::query_typed_opt(self, query, typed_params).await }
+    }
+    fn query<T>(
         &self,
         query: &T,
-        params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> Result<Vec<tokio_postgres::Row>, Error>
+        params: &[&(dyn ToSql + Sync)],
+    ) -> impl std::future::Future<Output = Result<Vec<Row>, Error>> + Send
     where
-        T: ?Sized + tokio_postgres::ToStatement + Sync + Send,
+        T: ?Sized + ToStatement + Sync + Send,
     {
-        PgTransaction::query(self, query, params).await
+        async move { PgTransaction::query(self, query, params).await }
     }
-    async fn query_raw<T, I>(&self, statement: &T, params: I) -> Result<RowStream, Error>
+    fn query_raw<T, I>(
+        &self,
+        statement: &T,
+        params: I,
+    ) -> impl std::future::Future<Output = Result<RowStream, Error>> + Send
     where
         T: ?Sized + ToStatement + Sync + Send,
         I: IntoIterator + Sync + Send,
         I::IntoIter: ExactSizeIterator,
         I::Item: BorrowToSql,
     {
-        PgTransaction::query_raw(self, statement, params).await
+        async move { PgTransaction::query_raw(self, statement, params).await }
+    }
+    fn query_typed_raw(
+        &self,
+        query: &str,
+        typed_params: &[(&(dyn ToSql + Sync), postgres_types::Type)],
+    ) -> impl std::future::Future<Output = Result<RowStream, Error>> + Send {
+        async move {
+            PgTransaction::query_typed_raw(self, query, crate::slice_iter_typed(typed_params)).await
+        }
     }
 }
