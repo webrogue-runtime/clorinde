@@ -485,7 +485,7 @@ pub fn sync() -> proc_macro2::TokenStream {
         mod generic_client;
 
         use postgres::{
-            types::ToSql,
+            types::{ToSql, Type},
             Error, Row, RowIter, Statement,
         };
 
@@ -499,6 +499,7 @@ pub fn sync() -> proc_macro2::TokenStream {
             client: &mut C,
             query: &str,
             params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
             cached: Option<&Statement>,
         ) -> Result<Row, Error> {
             if let Some(cached) = cached {
@@ -506,6 +507,8 @@ pub fn sync() -> proc_macro2::TokenStream {
             } else if C::stmt_cache() {
                 let cached = client.prepare(query)?;
                 client.query_one(&cached, params)
+            } else if let Some(typed_params) = typed_params {
+                client.query_typed_one(query, typed_params)
             } else {
                 client.query_one(query, params)
             }
@@ -515,6 +518,7 @@ pub fn sync() -> proc_macro2::TokenStream {
             client: &mut C,
             query: &str,
             params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
             cached: Option<&Statement>,
         ) -> Result<Option<Row>, Error> {
             if let Some(cached) = cached {
@@ -522,6 +526,8 @@ pub fn sync() -> proc_macro2::TokenStream {
             } else if C::stmt_cache() {
                 let cached = client.prepare(query)?;
                 client.query_opt(&cached, params)
+            } else if let Some(typed_params) = typed_params {
+                client.query_typed_opt(query, typed_params)
             } else {
                 client.query_opt(query, params)
             }
@@ -531,6 +537,7 @@ pub fn sync() -> proc_macro2::TokenStream {
             client: &'a mut C,
             query: &str,
             params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
             cached: Option<&Statement>,
         ) -> Result<RowIter<'a>, Error> {
             if let Some(cached) = cached {
@@ -538,6 +545,8 @@ pub fn sync() -> proc_macro2::TokenStream {
             } else if C::stmt_cache() {
                 let cached = client.prepare(query)?;
                 client.query_raw(&cached, params)
+            } else if let Some(typed_params) = typed_params {
+                client.query_typed_raw(query, typed_params)
             } else {
                 client.query_raw(query, params)
             }
@@ -554,7 +563,7 @@ pub fn async_() -> proc_macro2::TokenStream {
         mod deadpool;
 
         use tokio_postgres::{
-            types::ToSql,
+            types::{ToSql, Type},
             Error, Row, RowStream, Statement,
         };
 
@@ -568,6 +577,7 @@ pub fn async_() -> proc_macro2::TokenStream {
             client: &C,
             query: &str,
             params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
             cached: Option<&Statement>,
         ) -> Result<Row, Error> {
             if let Some(cached) = cached {
@@ -575,6 +585,8 @@ pub fn async_() -> proc_macro2::TokenStream {
             } else if C::stmt_cache() {
                 let cached = client.prepare(query).await?;
                 client.query_one(&cached, params).await
+            } else if let Some(typed_params) = typed_params {
+                client.query_typed_one(query, typed_params).await
             } else {
                 client.query_one(query, params).await
             }
@@ -584,6 +596,7 @@ pub fn async_() -> proc_macro2::TokenStream {
             client: &C,
             query: &str,
             params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
             cached: Option<&Statement>,
         ) -> Result<Option<Row>, Error> {
             if let Some(cached) = cached {
@@ -591,6 +604,8 @@ pub fn async_() -> proc_macro2::TokenStream {
             } else if C::stmt_cache() {
                 let cached = client.prepare(query).await?;
                 client.query_opt(&cached, params).await
+            } else if let Some(typed_params) = typed_params {
+                client.query_typed_opt(query, typed_params).await
             } else {
                 client.query_opt(query, params).await
             }
@@ -600,6 +615,7 @@ pub fn async_() -> proc_macro2::TokenStream {
             client: &C,
             query: &str,
             params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
             cached: Option<&Statement>,
         ) -> Result<RowStream, Error> {
             if let Some(cached) = cached {
@@ -607,6 +623,8 @@ pub fn async_() -> proc_macro2::TokenStream {
             } else if C::stmt_cache() {
                 let cached = client.prepare(query).await?;
                 client.query_raw(&cached, params).await
+            } else if let Some(typed_params) = typed_params {
+                client.query_typed_raw(query, typed_params).await
             } else {
                 client.query_raw(query, params).await
             }
@@ -650,11 +668,23 @@ fn backend_methods(
     let prepare_body = body(prepare);
     let execute_body = body(forward(quote!(execute), quote!(query, params)));
     let query_one_body = body(forward(quote!(query_one), quote!(statement, params)));
+    let query_typed_one_body = body(forward(
+        quote!(query_typed_one),
+        quote!(statement, typed_params),
+    ));
     let query_opt_body = body(forward(quote!(query_opt), quote!(statement, params)));
+    let query_typed_opt_body = body(forward(
+        quote!(query_typed_opt),
+        quote!(statement, typed_params),
+    ));
     let query_body = body(forward(quote!(query), quote!(query, params)));
     let query_raw_body = body(forward(
         quote!(query_raw),
         quote!(statement, params.iter().copied()),
+    ));
+    let query_typed_raw_body = body(forward(
+        quote!(query_typed_raw),
+        quote!(statement, typed_params.iter().cloned()),
     ));
 
     let ret_statement = ret(quote!(Statement));
@@ -685,6 +715,13 @@ fn backend_methods(
             T: ?Sized + ToStatement #extra_query_bounds
         #query_one_body
 
+        #asyncness fn query_typed_one(
+            #receiver,
+            statement: &str,
+            typed_params: &[(&(dyn ToSql + Sync), Type)],
+        ) -> #ret_row
+        #query_typed_one_body
+
         #asyncness fn query_opt<T>(
             #receiver,
             statement: &T,
@@ -693,6 +730,13 @@ fn backend_methods(
         where
             T: ?Sized + ToStatement #extra_query_bounds
         #query_opt_body
+
+        #asyncness fn query_typed_opt(
+            #receiver,
+            statement: &str,
+            typed_params: &[(&(dyn ToSql + Sync), Type)],
+        ) -> #ret_opt_row
+        #query_typed_opt_body
 
         #asyncness fn query<T>(
             #receiver,
@@ -711,6 +755,13 @@ fn backend_methods(
         where
             T: ?Sized + ToStatement #extra_query_bounds
         #query_raw_body
+
+        #asyncness fn query_typed_raw(
+            #receiver,
+            statement: &str,
+            typed_params: &[(&(dyn ToSql + Sync), Type)],
+        ) -> #ret_raw
+        #query_typed_raw_body
     }
 }
 
@@ -729,7 +780,7 @@ pub fn sync_generic_client() -> proc_macro2::TokenStream {
 
     quote! {
         use postgres::{
-            types::ToSql,
+            types::{ToSql, Type},
             Client, Error, Row, RowIter, Statement, ToStatement, Transaction,
         };
 
@@ -769,7 +820,7 @@ pub fn async_generic_client() -> proc_macro2::TokenStream {
     quote! {
         use std::future::Future;
         use tokio_postgres::{
-            types::ToSql,
+            types::{ToSql, Type},
             Client, Error, Row, RowStream, Statement, ToStatement, Transaction,
         };
 
@@ -813,7 +864,7 @@ pub fn async_deadpool() -> proc_macro2::TokenStream {
             Client as DeadpoolClient, ClientWrapper, Transaction as DeadpoolTransaction,
         };
         use tokio_postgres::{
-            types::ToSql,
+            types::{ToSql, Type},
             Client as PgClient, Error, Row, RowStream, Statement, ToStatement,
             Transaction as PgTransaction,
         };

@@ -6,7 +6,8 @@ use deadpool_postgres::{
 };
 use tokio_postgres::{
     Client as PgClient, Error, Row, RowStream, Statement, ToStatement,
-    Transaction as PgTransaction, types::ToSql,
+    Transaction as PgTransaction,
+    types::{ToSql, Type},
 };
 impl GenericClient for DeadpoolClient {
     fn stmt_cache() -> bool {
@@ -31,6 +32,13 @@ impl GenericClient for DeadpoolClient {
     {
         PgClient::query_one(self, statement, params).await
     }
+    async fn query_typed_one(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<Row, Error> {
+        PgClient::query_typed_one(self, statement, typed_params).await
+    }
     async fn query_opt<T>(
         &self,
         statement: &T,
@@ -40,6 +48,13 @@ impl GenericClient for DeadpoolClient {
         T: ?Sized + ToStatement + Sync + Send,
     {
         PgClient::query_opt(self, statement, params).await
+    }
+    async fn query_typed_opt(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<Option<Row>, Error> {
+        PgClient::query_typed_opt(self, statement, typed_params).await
     }
     async fn query<T>(&self, query: &T, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Row>, Error>
     where
@@ -56,6 +71,13 @@ impl GenericClient for DeadpoolClient {
         T: ?Sized + ToStatement + Sync + Send,
     {
         PgClient::query_raw(self, statement, params.iter().copied()).await
+    }
+    async fn query_typed_raw(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<RowStream, Error> {
+        PgClient::query_typed_raw(self, statement, typed_params.iter().cloned()).await
     }
 }
 impl GenericClient for DeadpoolTransaction<'_> {
@@ -81,6 +103,13 @@ impl GenericClient for DeadpoolTransaction<'_> {
     {
         PgTransaction::query_one(self, statement, params).await
     }
+    async fn query_typed_one(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<Row, Error> {
+        PgTransaction::query_typed_one(self, statement, typed_params).await
+    }
     async fn query_opt<T>(
         &self,
         statement: &T,
@@ -90,6 +119,13 @@ impl GenericClient for DeadpoolTransaction<'_> {
         T: ?Sized + ToStatement + Sync + Send,
     {
         PgTransaction::query_opt(self, statement, params).await
+    }
+    async fn query_typed_opt(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<Option<Row>, Error> {
+        PgTransaction::query_typed_opt(self, statement, typed_params).await
     }
     async fn query<T>(&self, query: &T, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Row>, Error>
     where
@@ -106,5 +142,12 @@ impl GenericClient for DeadpoolTransaction<'_> {
         T: ?Sized + ToStatement + Sync + Send,
     {
         PgTransaction::query_raw(self, statement, params.iter().copied()).await
+    }
+    async fn query_typed_raw(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<RowStream, Error> {
+        PgTransaction::query_typed_raw(self, statement, typed_params.iter().cloned()).await
     }
 }
