@@ -1098,7 +1098,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1140,7 +1149,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1182,7 +1200,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1224,7 +1251,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1266,7 +1302,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1308,7 +1353,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1350,7 +1404,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1392,7 +1455,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1434,7 +1506,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1476,7 +1557,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1628,7 +1718,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1670,7 +1769,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1712,7 +1820,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1754,7 +1871,16 @@ pub mod sync {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -2769,7 +2895,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -2815,7 +2951,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -2861,7 +3007,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -2907,7 +3063,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -2953,7 +3119,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -2999,7 +3175,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3045,7 +3231,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3091,7 +3287,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3137,7 +3343,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3183,7 +3399,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3343,7 +3569,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3389,7 +3625,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3435,7 +3681,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>
@@ -3481,7 +3737,17 @@ pub mod async_ {
             r#async: &'a crate::types::SyntaxComposite,
             r#enum: &'a crate::types::SyntaxEnum,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[r#async, r#enum]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[r#async, r#enum],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>

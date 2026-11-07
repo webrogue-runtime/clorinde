@@ -22,6 +22,11 @@ pub trait GenericClient: Send + Sync {
     ) -> impl Future<Output = Result<u64, Error>> + Send
     where
         T: ?Sized + ToStatement + Sync + Send;
+    fn execute_typed(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> impl Future<Output = Result<u64, Error>> + Send;
     fn query_one<T>(
         &self,
         statement: &T,
@@ -75,6 +80,13 @@ impl GenericClient for Transaction<'_> {
         T: ?Sized + ToStatement + Sync + Send,
     {
         Transaction::execute(self, query, params).await
+    }
+    async fn execute_typed(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error> {
+        Transaction::execute_typed(self, statement, typed_params).await
     }
     async fn query_one<T>(
         &self,
@@ -143,6 +155,13 @@ impl GenericClient for Client {
         T: ?Sized + ToStatement + Sync + Send,
     {
         Client::execute(self, query, params).await
+    }
+    async fn execute_typed(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error> {
+        Client::execute_typed(self, statement, typed_params).await
     }
     async fn query_one<T>(
         &self,

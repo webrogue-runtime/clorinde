@@ -67,3 +67,21 @@ pub async fn raw<C: GenericClient>(
         client.query_raw(query, params).await
     }
 }
+pub async fn execute<C: GenericClient>(
+    client: &C,
+    query: &str,
+    params: &[&(dyn ToSql + Sync)],
+    typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
+    cached: Option<&Statement>,
+) -> Result<u64, Error> {
+    if let Some(cached) = cached {
+        client.execute(cached, params).await
+    } else if C::stmt_cache() {
+        let cached = client.prepare(query).await?;
+        client.execute(&cached, params).await
+    } else if let Some(typed_params) = typed_params {
+        client.execute_typed(query, typed_params).await
+    } else {
+        client.execute(query, params).await
+    }
+}

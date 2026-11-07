@@ -498,7 +498,19 @@ pub mod sync {
             names: &'a T2,
             hair_colors: &'a T4,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[names, hair_colors])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = Some([
+                (names, postgres_types::Type::TEXT_ARRAY),
+                (hair_colors, postgres_types::Type::TEXT_ARRAY),
+            ]);
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[names, hair_colors],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<
@@ -1110,7 +1122,20 @@ pub mod async_ {
             names: &'a T2,
             hair_colors: &'a T4,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[names, hair_colors]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = Some([
+                (names, postgres_types::Type::TEXT_ARRAY),
+                (hair_colors, postgres_types::Type::TEXT_ARRAY),
+            ]);
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[names, hair_colors],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<

@@ -14,6 +14,11 @@ pub trait GenericClient {
     fn execute<T>(&mut self, query: &T, params: &[&(dyn ToSql + Sync)]) -> Result<u64, Error>
     where
         T: ?Sized + ToStatement;
+    fn execute_typed(
+        &mut self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error>;
     fn query_one<T>(&mut self, statement: &T, params: &[&(dyn ToSql + Sync)]) -> Result<Row, Error>
     where
         T: ?Sized + ToStatement;
@@ -59,6 +64,13 @@ impl GenericClient for Transaction<'_> {
         T: ?Sized + ToStatement,
     {
         Transaction::execute(self, query, params)
+    }
+    fn execute_typed(
+        &mut self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error> {
+        Transaction::execute_typed(self, statement, typed_params)
     }
     fn query_one<T>(&mut self, statement: &T, params: &[&(dyn ToSql + Sync)]) -> Result<Row, Error>
     where
@@ -123,6 +135,13 @@ impl GenericClient for Client {
         T: ?Sized + ToStatement,
     {
         Client::execute(self, query, params)
+    }
+    fn execute_typed(
+        &mut self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error> {
+        Client::execute_typed(self, statement, typed_params)
     }
     fn query_one<T>(&mut self, statement: &T, params: &[&(dyn ToSql + Sync)]) -> Result<Row, Error>
     where

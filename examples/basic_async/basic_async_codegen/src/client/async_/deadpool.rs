@@ -22,6 +22,13 @@ impl GenericClient for DeadpoolClient {
     {
         PgClient::execute(self, query, params).await
     }
+    async fn execute_typed(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error> {
+        PgClient::execute_typed(self, statement, typed_params).await
+    }
     async fn query_one<T>(
         &self,
         statement: &T,
@@ -92,6 +99,13 @@ impl GenericClient for DeadpoolTransaction<'_> {
         T: ?Sized + ToStatement + Sync + Send,
     {
         PgTransaction::execute(self, query, params).await
+    }
+    async fn execute_typed(
+        &self,
+        statement: &str,
+        typed_params: &[(&(dyn ToSql + Sync), Type)],
+    ) -> Result<u64, Error> {
+        PgTransaction::execute_typed(self, statement, typed_params).await
     }
     async fn query_one<T>(
         &self,

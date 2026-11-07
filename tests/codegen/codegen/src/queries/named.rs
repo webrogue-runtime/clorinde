@@ -495,7 +495,16 @@ pub mod sync {
             named: &'a crate::types::NamedCompositeBorrowed<'a>,
             named_with_dot: &'a Option<crate::types::NamedCompositeWithDot>,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[named, named_with_dot])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[named, named_with_dot],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     impl<'c, 'a, 's, C: GenericClient>
@@ -1005,7 +1014,17 @@ pub mod async_ {
             named: &'a crate::types::NamedCompositeBorrowed<'a>,
             named_with_dot: &'a Option<crate::types::NamedCompositeWithDot>,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[named, named_with_dot]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 2],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[named, named_with_dot],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<'a, C: GenericClient + Send + Sync>

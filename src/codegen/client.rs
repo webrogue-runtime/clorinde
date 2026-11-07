@@ -551,6 +551,25 @@ pub fn sync() -> proc_macro2::TokenStream {
                 client.query_raw(query, params)
             }
         }
+
+        pub fn execute<C: GenericClient>(
+            client: &mut C,
+            query: &str,
+            params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
+            cached: Option<&Statement>,
+        ) -> Result<u64, Error> {
+            if let Some(cached) = cached {
+                client.execute(cached, params)
+            } else if C::stmt_cache() {
+                let cached = client.prepare(query)?;
+                client.execute(&cached, params)
+            } else if let Some(typed_params) = typed_params {
+                client.execute_typed(query, typed_params)
+            } else {
+                client.execute(query, params)
+            }
+        }
     }
 }
 
@@ -629,6 +648,25 @@ pub fn async_() -> proc_macro2::TokenStream {
                 client.query_raw(query, params).await
             }
         }
+
+        pub async fn execute<C: GenericClient>(
+            client: &C,
+            query: &str,
+            params: &[&(dyn ToSql + Sync)],
+            typed_params: Option<&[(&(dyn ToSql + Sync), Type)]>,
+            cached: Option<&Statement>,
+        ) -> Result<u64, Error> {
+            if let Some(cached) = cached {
+                client.execute(cached, params).await
+            } else if C::stmt_cache() {
+                let cached = client.prepare(query).await?;
+                client.execute(&cached, params).await
+            } else if let Some(typed_params) = typed_params {
+                client.execute_typed(query, typed_params).await
+            } else {
+                client.execute(query, params).await
+            }
+        }
     }
 }
 
@@ -667,6 +705,10 @@ fn backend_methods(
 
     let prepare_body = body(prepare);
     let execute_body = body(forward(quote!(execute), quote!(query, params)));
+    let execute_typed_body = body(forward(
+        quote!(execute_typed),
+        quote!(statement, typed_params),
+    ));
     let query_one_body = body(forward(quote!(query_one), quote!(statement, params)));
     let query_typed_one_body = body(forward(
         quote!(query_typed_one),
@@ -705,6 +747,13 @@ fn backend_methods(
         where
             T: ?Sized + ToStatement #extra_query_bounds
         #execute_body
+
+        #asyncness fn execute_typed(
+            #receiver,
+            statement: &str,
+            typed_params: &[(&(dyn ToSql + Sync), Type)],
+        ) -> #ret_u64
+        #execute_typed_body
 
         #asyncness fn query_one<T>(
             #receiver,

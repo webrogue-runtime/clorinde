@@ -519,13 +519,24 @@ fn gen_query_fn(
             })
             .collect();
 
+        let nb_params = proc_macro2::Literal::usize_unsuffixed(order.len());
         quote! {
             #bind_visibility #fn_async fn bind<'c, 'a, 's, C: GenericClient, #(#traits_idents: #traits_bounds,)*>(
                 &'s self,
                 client: &'c #client_mut C,
                 #(#params_name: &'a #params_ty,)*
             ) -> Result<u64, #backend::Error> {
-                client.execute(self.0, &[#(#params_wrap,)*])#fn_await
+                let typed_params: Option<[
+                    (&(dyn postgres_types::ToSql + Sync), postgres_types::Type);
+                    #nb_params
+                ]> = #typed_params;
+                #client::execute(
+                    client,
+                    self.0,
+                    &[#(#params_wrap,)*],
+                    typed_params.as_ref().map(|params| params.as_slice()),
+                    self.1.as_ref(),
+                )#fn_await
             }
         }
     };

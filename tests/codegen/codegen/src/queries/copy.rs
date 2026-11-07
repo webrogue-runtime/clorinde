@@ -171,7 +171,16 @@ pub mod sync {
             client: &'c mut C,
             composite: &'a crate::types::CloneCompositeBorrowed<'a>,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[composite])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 1],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[composite],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     pub struct SelectCloneStmt(&'static str, Option<postgres::Statement>);
@@ -218,7 +227,16 @@ pub mod sync {
             client: &'c mut C,
             composite: &'a crate::types::CopyComposite,
         ) -> Result<u64, postgres::Error> {
-            client.execute(self.0, &[composite])
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 1],
+            > = None;
+            crate::client::sync::execute(
+                client,
+                self.0,
+                &[composite],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
         }
     }
     pub struct SelectCopyStmt(&'static str, Option<postgres::Statement>);
@@ -437,7 +455,17 @@ pub mod async_ {
             client: &'c C,
             composite: &'a crate::types::CloneCompositeBorrowed<'a>,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[composite]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 1],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[composite],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     pub struct SelectCloneStmt(&'static str, Option<tokio_postgres::Statement>);
@@ -484,7 +512,17 @@ pub mod async_ {
             client: &'c C,
             composite: &'a crate::types::CopyComposite,
         ) -> Result<u64, tokio_postgres::Error> {
-            client.execute(self.0, &[composite]).await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 1],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[composite],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     pub struct SelectCopyStmt(&'static str, Option<tokio_postgres::Statement>);

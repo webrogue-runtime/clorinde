@@ -304,7 +304,11 @@ pub mod sync {
             arr: &'a T4,
             composite: &'a Option<crate::types::DomainCompositeParams<'a>>,
         ) -> Result<u64, postgres::Error> {
-            client.execute(
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 5],
+            > = None;
+            crate::client::sync::execute(
+                client,
                 self.0,
                 &[
                     &crate::Domain(txt),
@@ -313,6 +317,8 @@ pub mod sync {
                     &crate::Domain(&crate::DomainArray(arr)),
                     composite,
                 ],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
             )
         }
     }
@@ -633,18 +639,23 @@ pub mod async_ {
             arr: &'a T4,
             composite: &'a Option<crate::types::DomainCompositeParams<'a>>,
         ) -> Result<u64, tokio_postgres::Error> {
-            client
-                .execute(
-                    self.0,
-                    &[
-                        &crate::Domain(txt),
-                        &crate::Domain(json),
-                        &crate::Domain(nb),
-                        &crate::Domain(&crate::DomainArray(arr)),
-                        composite,
-                    ],
-                )
-                .await
+            let typed_params: Option<
+                [(&(dyn postgres_types::ToSql + Sync), postgres_types::Type); 5],
+            > = None;
+            crate::client::async_::execute(
+                client,
+                self.0,
+                &[
+                    &crate::Domain(txt),
+                    &crate::Domain(json),
+                    &crate::Domain(nb),
+                    &crate::Domain(&crate::DomainArray(arr)),
+                    composite,
+                ],
+                typed_params.as_ref().map(|params| params.as_slice()),
+                self.1.as_ref(),
+            )
+            .await
         }
     }
     impl<
